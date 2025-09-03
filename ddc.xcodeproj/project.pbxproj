@@ -10,6 +10,7 @@
 		61B418B02BD77BA400A6BFDF /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61B418AF2BD77BA400A6BFDF /* main.swift */; };
 		61B418B72BD77BB800A6BFDF /* Arm64DDC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61B418B62BD77BB800A6BFDF /* Arm64DDC.swift */; };
 		61B418BB2BD77DA900A6BFDF /* CoreDisplay.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 61B418BA2BD77DA900A6BFDF /* CoreDisplay.framework */; };
+		61F3F0282E688EF90036B0B7 /* Display.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61F3F0272E688EF60036B0B7 /* Display.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -30,6 +31,7 @@
 		61B418B62BD77BB800A6BFDF /* Arm64DDC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Arm64DDC.swift; sourceTree = "<group>"; };
 		61B418B82BD77C1C00A6BFDF /* ddc-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "ddc-Bridging-Header.h"; path = "ddc/ddc-Bridging-Header.h"; sourceTree = "<group>"; };
 		61B418BA2BD77DA900A6BFDF /* CoreDisplay.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreDisplay.framework; path = ../../../../System/Library/Frameworks/CoreDisplay.framework; sourceTree = "<group>"; };
+		61F3F0272E688EF60036B0B7 /* Display.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Display.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -65,6 +67,7 @@
 		61B418AE2BD77BA400A6BFDF /* ddc */ = {
 			isa = PBXGroup;
 			children = (
+				61F3F0272E688EF60036B0B7 /* Display.swift */,
 				61B418AF2BD77BA400A6BFDF /* main.swift */,
 				61B418B62BD77BB800A6BFDF /* Arm64DDC.swift */,
 			);
@@ -138,6 +141,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				61B418B72BD77BB800A6BFDF /* Arm64DDC.swift in Sources */,
+				61F3F0282E688EF90036B0B7 /* Display.swift in Sources */,
 				61B418B02BD77BA400A6BFDF /* main.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

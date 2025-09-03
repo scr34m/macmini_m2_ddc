@@ -8,67 +8,75 @@
 import Foundation
 import Cocoa
 import CoreGraphics
-import os.log
 
-class Display {
-    let identifier: CGDirectDisplayID
-    // compund data let prefsId: String
-    var name: String
-    var vendorNumber: UInt32?
-    var modelNumber: UInt32?
-    var serialNumber: UInt32?
-    var arm64avService: IOAVService?
-    
-    init(_ identifier: CGDirectDisplayID, name: String, vendorNumber: UInt32?, modelNumber: UInt32?, serialNumber: UInt32?) {
-      self.identifier = identifier
-      self.name = name
-      self.vendorNumber = vendorNumber
-      self.modelNumber = modelNumber
-      self.serialNumber = serialNumber
+var displays : [Display] = configureDisplays()
+
+func getDisplayService(_ id: Int32) -> IOAVService? {
+    for display in displays {
+        if (display.identifier == id) {
+            let s = AppleSiliconDDC.getServiceMatches(displayIDs: [display.identifier])
+            return s[0].service;
+        }
+    }
+    return nil
+}
+
+func dump(_ service: IOAVService?) {
+    enum Command:Int{
+        case Brightness = 0x10
+        case Contrast = 0x12
+        case InputSource = 0x60
+        case AutoAdjust = 0x18
+        case PowerMode = 0xD6
+        
+        static let allValues = [Brightness, Contrast, InputSource, AutoAdjust, PowerMode]
+    }
+    for command in Command.allValues{
+        let v = AppleSiliconDDC.read(service: service, command: UInt8(command.rawValue))
+        print("\(command): \(v?.current ?? 0) / \(v?.max ?? 0)")
     }
 }
 
-var displays: [Display] = []
-   
-func configureDisplays() {
-  displays = []
-  var onlineDisplayIDs = [CGDirectDisplayID](repeating: 0, count: 16)
-  var displayCount: UInt32 = 0
-  guard CGGetOnlineDisplayList(16, &onlineDisplayIDs, &displayCount) == .success else {
-    print("Unable to get display list.")
-    return
-  }
-  for onlineDisplayID in onlineDisplayIDs where onlineDisplayID != 0 {
-    let name = "YYY"
-    let id = onlineDisplayID
-    let vendorNumber = CGDisplayVendorNumber(onlineDisplayID)
-    let modelNumber = CGDisplayModelNumber(onlineDisplayID)
-    let serialNumber = CGDisplaySerialNumber(onlineDisplayID)
-    let d = Display(id, name: name, vendorNumber: vendorNumber, modelNumber: modelNumber, serialNumber: serialNumber)
-    os_log("Other display found - %{public}@", "ID: \(d.identifier), Name: \(d.name) (Vendor: \(d.vendorNumber ?? 0), Model: \(d.modelNumber ?? 0))")
-    displays.append(d)
-  }
+/*
+ // switch input to HDMI 2
+ AppleSiliconDDC.write(service: s[0].service, command: 0x60, value: 18)
+ */
+
+let args = CommandLine.arguments
+if CommandLine.argc == 1 {
+    print("Displays: ")
+    for display in displays {
+        let s = AppleSiliconDDC.getServiceMatches(displayIDs: [display.identifier])
+        if let dispAttr = s[0].serviceDetails.displayAttributes {
+            if let prodAttr = dispAttr["ProductAttributes"] as? [String: Any]  {
+                print("\(display.identifier): \(prodAttr["ProductName"] ?? "---")")
+            }
+        }
+    }
+    exit(0)
 }
 
-configureDisplays()
-
-enum Command:Int{
-    case Brightness = 0x10
-    case Contrast = 0x12
-    case InputSource = 0x60
-    case AutoAdjust = 0x18
-    case PowerMode = 0xD6
-    
-    static let allValues = [Brightness, Contrast, InputSource, AutoAdjust, PowerMode]
+if CommandLine.argc < 3 {
+    print("After command you must set the display ID")
+    exit(1)
 }
 
-let s = AppleSiliconDDC.getServiceMatches(displayIDs: [displays[0].identifier])
-print(s[0])
-
-for command in Command.allValues{
-    let v = AppleSiliconDDC.read(service: s[0].service, command: UInt8(command.rawValue))
-    print("\(command) \(v?.current ?? 0) / \(v?.max ?? 0)")
+let displayId : Int32? = Int32(CommandLine.arguments[2])
+if displayId == nil {
+    print("Provided display ID is not numeric")
+    exit(1)
 }
 
-// switch input to HDMI 2
-AppleSiliconDDC.write(service: s[0].service, command: 0x60, value: 18)
+let service : IOAVService? = getDisplayService(displayId!)
+if service == nil {
+    print("Unable to retrive the service for the selected display")
+    exit(1)
+}
+
+let command = CommandLine.arguments[1]
+switch command {
+case "dump":
+    dump(service)
+default:
+    print("Unknown command")
+}
