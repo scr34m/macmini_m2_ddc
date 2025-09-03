@@ -21,6 +21,22 @@ func getDisplayService(_ id: Int32) -> IOAVService? {
     return nil
 }
 
+func usage() {
+    print("Usage: ddc dump 2")
+    print("")
+    print("Available commands are: dump, input")
+    print("")
+    print("Displays: ")
+    for display in displays {
+        let s = AppleSiliconDDC.getServiceMatches(displayIDs: [display.identifier])
+        if let dispAttr = s[0].serviceDetails.displayAttributes {
+            if let prodAttr = dispAttr["ProductAttributes"] as? [String: Any]  {
+                print("\(display.identifier): \(prodAttr["ProductName"] ?? "---")")
+            }
+        }
+    }
+}
+
 func dump(_ service: IOAVService?) {
     enum Command:Int{
         case Brightness = 0x10
@@ -37,27 +53,14 @@ func dump(_ service: IOAVService?) {
     }
 }
 
-/*
- // switch input to HDMI 2
- AppleSiliconDDC.write(service: s[0].service, command: 0x60, value: 18)
- */
-
 let args = CommandLine.arguments
 if CommandLine.argc == 1 {
-    print("Displays: ")
-    for display in displays {
-        let s = AppleSiliconDDC.getServiceMatches(displayIDs: [display.identifier])
-        if let dispAttr = s[0].serviceDetails.displayAttributes {
-            if let prodAttr = dispAttr["ProductAttributes"] as? [String: Any]  {
-                print("\(display.identifier): \(prodAttr["ProductName"] ?? "---")")
-            }
-        }
-    }
+    usage()
     exit(0)
 }
 
 if CommandLine.argc < 3 {
-    print("After command you must set the display ID")
+    print("You must specify a command and display ID")
     exit(1)
 }
 
@@ -69,7 +72,7 @@ if displayId == nil {
 
 let service : IOAVService? = getDisplayService(displayId!)
 if service == nil {
-    print("Unable to retrive the service for the selected display")
+    print("Unable to retrive the service for the selected display, or wrong display ID used")
     exit(1)
 }
 
@@ -77,6 +80,13 @@ let command = CommandLine.arguments[1]
 switch command {
 case "dump":
     dump(service)
+case "input":
+    let value : UInt16? = UInt16(CommandLine.arguments[3])
+    if value == nil {
+        print("Provided display ID is not numeric")
+        exit(1)
+    }
+    AppleSiliconDDC.write(service: service, command: 0x60, value: value!)
 default:
     print("Unknown command")
 }
